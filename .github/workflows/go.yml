@@ -1,0 +1,51 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_run:
+    workflows: [ "Go Workflow" ]
+    types:
+      - completed
+
+jobs:
+  build:
+    env:
+      Discord: "${{secrets.Discord}}"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23.5'
+
+    - name: Build
+      run: go build -v ./main.go
+
+    - name: Test
+      run: go test -v ./main.go
+    - name: send message to Discord
+      run: |
+        curl -X POST "https://894c-2806-2f0-8181-feaf-a927-a5f1-acc0-18e8.ngrok-free.app/github/webhook" \
+           -H "Content-Type: application/json" \
+           -H "X-GitHub-Event: workflow_run" \
+           -H "X-GitHub-Delivery: ${{ github.run_id }}" \
+           -d '{
+             "action": "${{ github.event.action }}",
+             "workflow_run": {
+               "name": "${{ github.workflow }}",
+               "url": "${{ github.event.workflow_run.url }}",
+               "conclusion": "${{ github.event.workflow_run.conclusion }}",
+               "html_url": "${{ github.event.workflow_run.html_url }}"
+             },
+             "repository": {
+               "full_name": "${{ github.repository }}"
+             }
+           }'
