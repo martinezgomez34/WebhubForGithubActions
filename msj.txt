@@ -1,5 +1,1 @@
-Test
-<<<<<<< HEAD
-testing
-=======
->>>>>>> 23c909923b947b9bcdbc570afcdbaf75829373c2
+main
